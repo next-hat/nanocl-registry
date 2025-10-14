@@ -1,0 +1,97 @@
+ApiVersion: v0.17
+
+Metadata:
+  Name: Jackett
+  Tags:
+  - cargo
+  - torrent
+  - indexer
+  About: Deploy jackett server using LinuxServer.io image.
+  LongAbout: |
+    Jackett works as a proxy server: it translates queries from apps like Sonarr and Radarr into tracker-site-specific HTTP queries.
+    This cargo uses the LinuxServer.io image.
+    It will allow you to integrate various trackers and provide a unified Torznab index for your other services.
+    Documentation: https://docs.linuxserver.io/images/docker-jackett
+    Source: https://github.com/linuxserver/docker-jackett
+
+Args:
+- Name: namespace
+  Kind: String
+  Default: global
+  Description: Nanocl namespace to deploy the cargo
+- Name: name
+  Kind: String
+  Default: jackett
+  Description: Name of the cargo
+- Name: puid
+  Kind: String
+  Default: "1000"
+  Description: Change this to your user ID
+- Name: pgid
+  Kind: String
+  Default: "1000"
+  Description: Change this to your group ID
+- Name: timezone
+  Kind: String
+  Default: Etc/UTC
+  Description: Change this to your timezone
+- Name: base-dir-path
+  Kind: String
+  Default: /opt/nanocl/containers
+  Description: Base path for container configurations
+- Name: proxy-network
+  Kind: String
+  Default: All
+  Description: The network the proxy will bind to in order to be accessible using the domain
+- Name: domain
+  Kind: String
+  Description: Domain to use for the proxy rules
+- Name: enable_internal_gateway
+  Kind: Boolean
+  Description: Add $$INTERNAL_GATEWAY to container DNS when enabled
+- Name: enable_internal_dns
+  Kind: Boolean
+  Description: Create an internal DNS rule for this cargo when enabled
+
+Namespace: ${{ Args.namespace }}
+
+Cargoes:
+- Name: ${{ Args.name }}
+  Container:
+    Image: lscr.io/linuxserver/jackett:latest
+    Env:
+    - PUID=${{ Args.puid }}
+    - PGID=${{ Args.pgid }}
+    - TZ=${{ Args.timezone }}
+    - AUTO_UPDATE=true
+    # {% if Args.enable_internal_gateway %}
+    Dns:
+    - $${INTERNAL_GATEWAY}
+    # {% endif %}
+    HostConfig:
+      Binds:
+      - ${{ Args.base-dir-path }}/${{ Args.name }}/config:/config
+
+Resources:
+# {% if Args.domain %}
+- Name: http.${{ Args.domain }}
+  Kind: ncproxy.io/rule
+  Data:
+    Rules:
+    - Domain: ${{ Args.domain }}
+      Network: ${{ Args.proxy-network }}
+      Locations:
+      - Path: /
+        Target:
+          Key: ${{ Args.name }}.${{ Args.namespace }}.c
+          Port: 9117
+# {% if Args.enable_internal_dns %}
+- Name: dns.${{ Args.domain }}
+  Kind: ncdns.io/rule
+  Data:
+    Network: Internal
+    Entries:
+    - Name: ${{ Args.domain }}
+      IpAddress: Internal
+# {% endif %}
+# {% endif %}

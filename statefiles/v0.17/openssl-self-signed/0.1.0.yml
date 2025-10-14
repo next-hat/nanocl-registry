@@ -2,6 +2,11 @@ ApiVersion: v0.17
 
 Metadata:
   Name: Openssl Self-Signed
+  Tags:
+  - job
+  - ssl
+  - certificate
+  - security
   About: Generate a self-signed SSL certificate using OpenSSL and store it as a Nanocl secret.
   LongAbout: |
     This job generates a self-signed SSL certificate using OpenSSL and stores it as a Nanocl secret.

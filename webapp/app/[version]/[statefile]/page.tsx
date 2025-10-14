@@ -5,7 +5,6 @@ import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeRaw from "rehype-raw";
 import SyntaxHighlighter from 'react-syntax-highlighter';
-import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import {statefileToMarkdown} from "../../../lib/statefileToMarkdown";
 import type { Metadata } from 'next'
 
@@ -57,10 +56,8 @@ export default async function StatefilePage({ params, searchParams }: PageProps)
             return match ? (
               <div className="px-2">
                 <SyntaxHighlighter
-                  {...rest}
                   children={String(children).replace(/\n$/, '')}
                   language={match[1]}
-                  style={docco}
                   customStyle={{
                     overflowX: "auto",
                     maxWidth: "86vw",

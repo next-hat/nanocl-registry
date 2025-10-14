@@ -2,6 +2,10 @@ ApiVersion: v0.17
 
 Metadata:
   Name: Vaultwarden
+  Tags:
+  - cargo
+  - password-manager
+  - security
   About: Self-hosted password manager compatible with Bitwarden written in Rust
   LongAbout: |
     Vaultwarden (formerly Bitwarden_RS) is a lightweight, self-hosted password manager compatible with Bitwarden.

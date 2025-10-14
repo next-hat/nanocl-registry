@@ -16,6 +16,10 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        // Map Tailwind font-sans to the CSS variable provided by next/font
+        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: 'var(--border)',
         input: 'var(--input)',
