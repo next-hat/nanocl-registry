@@ -14,15 +14,33 @@ type PageProps = {
 }
 
 export async function generateMetadata(
-  { searchParams }: PageProps,
+  { params, searchParams }: PageProps,
 ): Promise<Metadata> {
+  const { version, statefile } = await params;
   const sParams = await searchParams;
-  const entry = JSON.parse(sParams.entry);
+  const entry = sParams?.entry ? JSON.parse(sParams.entry) : null;
   if (!entry) return {};
+  const title = `${entry.name} — Nanocl Statefile`;
+  const description = entry.description || `Statefile for ${entry.name} version ${entry.version}`;
+  const path = `/${version}/${statefile}`;
+  const url = `https://nr.next-hat.com${path}`;
   return {
-    title: `${entry.name} - Next Hat - Nanocl Registry`,
-    description: entry.description
-      || `Statefile for ${entry.name} version ${entry.version}`,
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "article",
+      images: [{ url: "/logo3.png", width: 512, height: 512, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [{ url: "/logo3.png", alt: title }],
+    },
   }
 }
 
@@ -34,6 +52,23 @@ export default async function StatefilePage({ params, searchParams }: PageProps)
   const markdown = statefileToMarkdown(entry, `nr.next-hat.com/${version}/${statefile}`);
   return (
   <div className="space-y-6 w-full max-w-[1024px] mx-auto">
+      {/* Structured data for the statefile */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareSourceCode",
+            name: entry.name,
+            version: entry.version,
+            description: entry.description || entry.about || "Nanocl Statefile",
+            programmingLanguage: "YAML",
+            codeRepository: `https://nr.next-hat.com/${version}/${statefile}`,
+            keywords: Array.isArray(entry.tags) ? entry.tags.join(", ") : undefined,
+            author: { "@type": "Organization", name: "Next Hat" },
+          }),
+        }}
+      />
       <Markdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSlug, rehypeAutolinkHeadings, rehypeRaw]}
