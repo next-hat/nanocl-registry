@@ -43,13 +43,13 @@ Cargoes:
     Image: busybox:latest
     HostConfig:
       Binds:
-      - ${{ Args.configPath }}:${{ Args.configPath }}
+      - ${{ Args.config-path }}:${{ Args.config-path }}
     Cmd:
     - /bin/sh
     - -c
     - |
-      mkdir -p ${{ Args.configPath }}/fail2ban
-      cat <<EOF > ${{ Args.configPath }}/fail2ban/jail.local
+      mkdir -p ${{ Args.config-path }}/fail2ban
+      cat <<EOF > ${{ Args.config-path }}/fail2ban/jail.local
       [DEFAULT]
 
       # Prevents banning LAN subnets

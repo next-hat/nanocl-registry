@@ -1,5 +1,3 @@
-export default {
-  plugins: {
-    '@tailwindcss/postcss': {},
-  },
-}
+import config from "@next-hat/ui/postcss.config.mjs";
+
+export default config;

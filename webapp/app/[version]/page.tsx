@@ -1,21 +1,23 @@
-import { notFound } from "next/navigation";
-import SearchableList from "../../components/SearchableList";
-import type { Metadata } from "next";
+import type { Metadata } from "next"
+import { notFound } from "next/navigation"
+
+import SearchableList from "../../components/searchable-list"
 
 type PageProps = {
   params: Promise<{ version: string }>
   searchParams: Promise<{ data: string }>
 }
 
-export async function generateMetadata(
-  { params, searchParams }: PageProps
-): Promise<Metadata> {
-  const { version } = await params;
-  const sParams = await searchParams;
-  if (!sParams?.data) return {};
-  const title = `${version} — Nanocl Registry`;
-  const description = `Browse production-ready Nanocl Statefiles for ${version} on the official Next Hat Nanocl Registry.`;
-  const url = `https://nr.next-hat.com/${version}`;
+export async function generateMetadata({
+  params,
+  searchParams,
+}: PageProps): Promise<Metadata> {
+  const { version } = await params
+  const sParams = await searchParams
+  if (!sParams?.data) return {}
+  const title = `${version} — Nanocl Registry`
+  const description = `Browse production-ready Nanocl Statefiles for ${version} on the official Next Hat Nanocl Registry.`
+  const url = `https://nr.next-hat.com/${version}`
   return {
     title,
     description,
@@ -33,16 +35,16 @@ export async function generateMetadata(
       description,
       images: [{ url: "/logo3.png", alt: title }],
     },
-  };
+  }
 }
 
 export default async function VersionPage({ params, searchParams }: PageProps) {
-  const { version } = await params;
-  const sParams = await searchParams;
-  if (!sParams.data) return notFound();
-  const data = JSON.parse(sParams.data);
-  if (!data) return (<div className="text-red-600">Version not found</div>);
-  const list = Object.values(data.statefiles);
+  const { version } = await params
+  const sParams = await searchParams
+  if (!sParams.data) return notFound()
+  const data = JSON.parse(sParams.data)
+  if (!data) return <div className="text-red-600">Version not found</div>
+  const list = Object.values(data.statefiles)
   return (
     <div className="space-y-6">
       {/* Structured data for version collection */}
@@ -65,5 +67,5 @@ export default async function VersionPage({ params, searchParams }: PageProps) {
       </h3>
       <SearchableList items={list as any} version={version} />
     </div>
-  );
+  )
 }

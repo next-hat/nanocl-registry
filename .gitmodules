@@ -1,0 +1,3 @@
+[submodule "webapp/packages/ui"]
+	path = webapp/packages/ui
+	url = https://github.com/next-hat/next-hat-ui

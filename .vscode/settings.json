@@ -1,0 +1,30 @@
+{
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnPaste": false,
+  "editor.rulers": [80],
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "editor.trimAutoWhitespace": true,
+  "editor.formatOnSave": true,
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "rust-analyzer.showUnlinkedFileNotification": false,
+  "rust-analyzer.checkOnSave": true,
+  "rust-analyzer.check.command": "clippy",
+  "rust-analyzer.cargo.noDefaultFeatures": true,
+  "prettier.configPath": "./webapp/prettier.config.js",
+  "files.associations": {
+    "*.rs": "rust",
+    "*.tsx": "typescriptreact",
+    "*.ts": "typescript"
+  }
+}
