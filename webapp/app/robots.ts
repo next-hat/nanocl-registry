@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next"
+import { SITE_URL, absoluteUrl } from "@/lib/seo"
 
 export default function robots(): MetadataRoute.Robots {
-  const base = "https://nr.next-hat.com"
   return {
     rules: {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: `${base}/sitemap.xml`,
-    host: base,
+    sitemap: absoluteUrl("/sitemap.xml"),
+    host: SITE_URL,
   }
 }

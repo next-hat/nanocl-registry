@@ -1,0 +1,67 @@
+ApiVersion: v0.18
+
+Metadata:
+  Name: Vaultwarden
+  Tags:
+  - cargo
+  - password-manager
+  - security
+  About: Self-hosted password manager compatible with Bitwarden written in Rust
+  LongAbout: |
+    Vaultwarden (formerly Bitwarden_RS) is a lightweight, self-hosted password manager compatible with Bitwarden.
+    It is written in Rust and designed to be easy to deploy and manage.
+    It supports a wide range of features including two-factor authentication, password sharing, and more.
+    It is a great alternative to the official Bitwarden server for those who want to self-host their password manager.
+
+Args:
+- Name: name
+  Kind: String
+  Default: vaultwarden
+  Description: Cargo name
+- Name: namespace
+  Kind: String
+  Default: global
+  Description: Namespace to deploy the cargo in
+- Name: data-path
+  Kind: String
+  Default: /opt/containers/vaultwarden
+  Description: Host path to store vaultwarden data
+- Name: network
+  Kind: String
+  Default: All
+  Description: Nanocl network to connect the container to
+- Name: domain
+  Kind: String
+  Required: true
+- Name: secret-cert
+  Kind: String
+  Required: true
+  Description: Nanocl secret name containing the SSL certificate and key
+
+Namespace: ${{ Args.namespace }}
+
+Cargoes:
+- Name: ${{ Args.name }}
+  Containers:
+  - Name: vaultwarden
+    ImagePullPolicy: Always
+    Image: ghcr.io/dani-garcia/vaultwarden:latest-alpine
+    Env:
+    - DOMAIN=https://${{ Args.domain }}
+    HostConfig:
+      Binds:
+      - ${{ Args.data-path }}:/data
+
+Resources:
+- Name: http.vaultwarden
+  Kind: ncproxy.io/rule
+  Data:
+    Rules:
+    - Domain: ${{ Args.domain }}
+      Network: ${{ Args.network }}
+      Ssl: ${{ Args.secret-cert }}
+      Locations:
+      - Path: /
+        Target:
+          Key: ${{ Args.namespace }}.${{ Args.name }}.c
+          Port: 80

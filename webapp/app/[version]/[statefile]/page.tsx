@@ -12,10 +12,56 @@ import rehypeSlug from "rehype-slug"
 import remarkGfm from "remark-gfm"
 
 import { statefileToMarkdown } from "../../../lib/statefileToMarkdown"
+import { ShareStatefile } from "@/components/share-statefile"
+import {
+  absoluteUrl,
+  pageMetadata,
+  pageSchema,
+  serializeJsonLd,
+  statefileSeo,
+  type StatefileEntry,
+} from "@/lib/seo"
 
 type PageProps = {
   params: Promise<{ version: string; statefile: string }>
-  searchParams: Promise<{ entry: string }>
+  searchParams: Promise<{ entry?: string }>
+}
+
+type ManualEntry = StatefileEntry & {
+  about: string
+  tags: string[]
+  yamlText: string
+}
+
+function parseEntry(serialized: string | undefined): ManualEntry {
+  let entry: unknown
+  try {
+    entry = JSON.parse(serialized ?? "")
+  } catch {
+    notFound()
+  }
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) notFound()
+  const item = entry as Record<string, unknown>
+  if (
+    typeof item.name !== "string" ||
+    !item.name ||
+    typeof item.about !== "string" ||
+    !Array.isArray(item.tags) ||
+    !item.tags.every((tag: unknown) => typeof tag === "string") ||
+    typeof item.yamlText !== "string" ||
+    !item.yamlText ||
+    (item.slug !== undefined && typeof item.slug !== "string") ||
+    (item.longAbout !== undefined && typeof item.longAbout !== "string") ||
+    (item.version !== undefined && typeof item.version !== "string") ||
+    (item.latestVersion !== undefined && typeof item.latestVersion !== "string") ||
+    !(
+      (typeof item.version === "string" && item.version) ||
+      (typeof item.latestVersion === "string" && item.latestVersion)
+    )
+  ) {
+    notFound()
+  }
+  return entry as ManualEntry
 }
 
 export async function generateMetadata({
@@ -24,31 +70,8 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { version, statefile } = await params
   const sParams = await searchParams
-  const entry = sParams?.entry ? JSON.parse(sParams.entry) : null
-  if (!entry) return {}
-  const title = `${entry.name} — Nanocl Statefile`
-  const description =
-    entry.description || `Statefile for ${entry.name} version ${entry.version}`
-  const path = `/${version}/${statefile}`
-  const url = `https://nr.next-hat.com${path}`
-  return {
-    title,
-    description,
-    alternates: { canonical: path },
-    openGraph: {
-      title,
-      description,
-      url,
-      type: "article",
-      images: [{ url: "/logo3.png", width: 512, height: 512, alt: title }],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [{ url: "/logo3.png", alt: title }],
-    },
-  }
+  const entry = parseEntry(sParams.entry)
+  return pageMetadata(statefileSeo(version, statefile, entry))
 }
 
 export default async function StatefilePage({
@@ -57,32 +80,19 @@ export default async function StatefilePage({
 }: PageProps) {
   const { version, statefile } = await params
   const sParams = await searchParams
-  const entry = sParams.entry ? JSON.parse(sParams.entry) : null
-  if (!entry) return notFound()
+  const entry = parseEntry(sParams.entry)
+  const page = statefileSeo(version, statefile, entry)
   const statefileVersion = entry.version ?? entry.latestVersion
   const markdown = statefileToMarkdown(
     entry,
-    `nr.next-hat.com/${version}/${statefile}`
+    absoluteUrl(page.path).replace(/^https:\/\//, "")
   )
   return (
     <div className="flex min-w-0 flex-col gap-8">
-      {/* Structured data for the statefile */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareSourceCode",
-            name: entry.name,
-            version: entry.version,
-            description: entry.description || entry.about || "Nanocl Statefile",
-            programmingLanguage: "YAML",
-            codeRepository: `https://nr.next-hat.com/${version}/${statefile}`,
-            keywords: Array.isArray(entry.tags)
-              ? entry.tags.join(", ")
-              : undefined,
-            author: { "@type": "Organization", name: "Next Hat" },
-          }),
+          __html: serializeJsonLd(pageSchema(page)),
         }}
       />
       <Link
@@ -102,14 +112,25 @@ export default async function StatefilePage({
             Statefile {statefileVersion}
           </span>
         </div>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          {entry.name}
-        </h1>
-        {entry.about && (
-          <p className="max-w-3xl text-base leading-7 text-muted-foreground">
-            {entry.about}
-          </p>
-        )}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-4">
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              {entry.name}
+            </h1>
+            {entry.about && (
+              <p className="max-w-3xl text-base leading-7 text-muted-foreground">
+                {entry.about}
+              </p>
+            )}
+          </div>
+          <div className="w-full shrink-0 sm:w-40">
+            <ShareStatefile
+              url={absoluteUrl(page.path)}
+              title={page.title}
+              text={page.description}
+            />
+          </div>
+        </div>
       </header>
       <div className="grid min-w-0 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-12">
         <article

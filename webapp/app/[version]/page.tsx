@@ -8,10 +8,51 @@ import { ArrowUpRight, BookOpen } from "lucide-react"
 import SearchableList, {
   type StatefileItem,
 } from "../../components/searchable-list"
+import {
+  pageMetadata,
+  pageSchema,
+  serializeJsonLd,
+  versionSeo,
+} from "@/lib/seo"
 
 type PageProps = {
   params: Promise<{ version: string }>
-  searchParams: Promise<{ data: string }>
+  searchParams: Promise<{ data?: string; home?: string }>
+}
+
+function parseVersionData(serialized: string | undefined): {
+  statefiles: Record<string, StatefileItem>
+} {
+  let data: unknown
+  try {
+    data = JSON.parse(serialized ?? "")
+  } catch {
+    notFound()
+  }
+  if (!data || typeof data !== "object" || Array.isArray(data)) notFound()
+  const statefiles = (data as Record<string, unknown>).statefiles
+  if (!statefiles || typeof statefiles !== "object" || Array.isArray(statefiles)) {
+    notFound()
+  }
+  for (const item of Object.values(statefiles)) {
+    if (
+      !item ||
+      typeof item !== "object" ||
+      Array.isArray(item) ||
+      typeof item.slug !== "string" ||
+      !item.slug ||
+      typeof item.name !== "string" ||
+      !item.name ||
+      typeof item.about !== "string" ||
+      typeof item.latestVersion !== "string" ||
+      !item.latestVersion ||
+      !Array.isArray(item.tags) ||
+      !item.tags.every((tag: unknown) => typeof tag === "string")
+    ) {
+      notFound()
+    }
+  }
+  return data as { statefiles: Record<string, StatefileItem> }
 }
 
 export async function generateMetadata({
@@ -20,52 +61,22 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { version } = await params
   const sParams = await searchParams
-  if (!sParams?.data) return {}
-  const title = `${version} — Nanocl Registry`
-  const description = `Browse production-ready Nanocl Statefiles for ${version} on the official Next Hat Nanocl Registry.`
-  const url = `https://nr.next-hat.com/${version}`
-  return {
-    title,
-    description,
-    alternates: { canonical: `/${version}` },
-    openGraph: {
-      title,
-      description,
-      url,
-      images: [{ url: "/logo3.png", width: 512, height: 512, alt: title }],
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [{ url: "/logo3.png", alt: title }],
-    },
-  }
+  const data = parseVersionData(sParams.data)
+  return pageMetadata(versionSeo(version, data, sParams.home === "1"))
 }
 
 export default async function VersionPage({ params, searchParams }: PageProps) {
   const { version } = await params
   const sParams = await searchParams
-  if (!sParams.data) return notFound()
-  const data = JSON.parse(sParams.data) as {
-    statefiles: Record<string, StatefileItem>
-  }
-  if (!data) return <div className="text-destructive">Version not found</div>
+  const data = parseVersionData(sParams.data)
+  const page = versionSeo(version, data, sParams.home === "1")
   const list = Object.values(data.statefiles)
   return (
     <div className="space-y-10">
-      {/* Structured data for version collection */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "CollectionPage",
-            name: `${version} — Nanocl Statefiles`,
-            description: `Browse production-ready Nanocl Statefiles for ${version} on the official Next Hat Nanocl Registry.`,
-            url: `https://nr.next-hat.com/${version}`,
-          }),
+          __html: serializeJsonLd(pageSchema(page)),
         }}
       />
       <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">

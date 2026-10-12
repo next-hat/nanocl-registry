@@ -1,0 +1,99 @@
+ApiVersion: v0.18
+
+Metadata:
+  Name: Deluge
+  Tags:
+  - cargo
+  - torrent
+  - downloader
+  About: Deploy deluge server using LinuxServer.io image.
+  LongAbout: |
+    Deluge is a lightweight, Free Software, cross-platform BitTorrent client.
+    This cargo uses the LinuxServer.io image.
+    It will allow you to manage your torrents through a web interface.
+    Documentation: https://docs.linuxserver.io/images/docker-deluge
+    Source: https://github.com/linuxserver/docker-deluge
+
+Args:
+- Name: namespace
+  Kind: String
+  Default: global
+  Description: Nanocl namespace to deploy the cargo
+- Name: name
+  Kind: String
+  Default: deluge
+  Description: Name of the cargo
+- Name: puid
+  Kind: String
+  Default: "1000"
+  Description: Change this to your user ID
+- Name: pgid
+  Kind: String
+  Default: "1000"
+  Description: Change this to your group ID
+- Name: timezone
+  Kind: String
+  Default: Etc/UTC
+  Description: Change this to your timezone
+- Name: base-dir-path
+  Kind: String
+  Default: /opt/nanocl/containers
+  Description: Base path for container configurations
+- Name: proxy-network
+  Kind: String
+  Default: All
+  Description: The network the proxy will bind to in order to be accessible using the domain
+- Name: domain
+  Kind: String
+  Description: Domain to use for the proxy rules
+- Name: enable_internal_gateway
+  Kind: Boolean
+  Description: Add $$INTERNAL_GATEWAY to container DNS when enabled
+- Name: enable_internal_dns
+  Kind: Boolean
+  Description: Create an internal DNS rule for this cargo when enabled
+
+Namespace: ${{ Args.namespace }}
+
+Cargoes:
+- Name: ${{ Args.name }}
+  # {% if Args.enable_internal_gateway %}
+  Dns:
+  - $$INTERNAL_GATEWAY
+  # {% endif %}
+  Containers:
+  - Name: deluge
+    Image: lscr.io/linuxserver/deluge:latest
+    Env:
+    - PUID=${{ Args.puid }}
+    - PGID=${{ Args.pgid }}
+    - TZ=${{ Args.timezone }}
+    - DELUGE_LOGLEVEL=error
+    HostConfig:
+      Binds:
+      - ${{ Args.base-dir-path }}/${{ Args.name }}/config:/config
+      - ${{ Args.base-dir-path }}/${{ Args.name }}/downloads:/downloads
+
+Resources:
+# {% if Args.domain %}
+- Name: http.${{ Args.domain }}
+  Kind: ncproxy.io/rule
+  Data:
+    Rules:
+    - Domain: ${{ Args.domain }}
+      Network: ${{ Args.proxy-network }}
+      Locations:
+      - Path: /
+        Target:
+          Key: ${{ Args.namespace }}.${{ Args.name }}.c
+          Port: 8112
+# {% if Args.enable_internal_dns %}
+- Name: dns.${{ Args.domain }}
+  Kind: ncdns.io/rule
+  Data:
+    Network: Internal
+    Entries:
+    - Name: ${{ Args.domain }}
+      IpAddress: Internal
+# {% endif %}
+# {% endif %}

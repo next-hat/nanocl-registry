@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "dev": "node server.js ../statefiles v0.17",
+    "dev": "node server.js ../statefiles v0.18",
     "build": "next build",
     "start": "NODE_ENV=production node server.js"
   },

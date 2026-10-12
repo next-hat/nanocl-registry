@@ -28,7 +28,7 @@ ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
     NANOCL_REGISTRY_PATH=/statefiles \
-    NANOCL_LATEST_VERSION=v0.17
+    NANOCL_LATEST_VERSION=v0.18
 
 COPY --from=build --chown=node:node /webapp/.next/runtime ./
 COPY --chown=node:node ./statefiles /statefiles

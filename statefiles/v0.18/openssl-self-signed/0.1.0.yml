@@ -1,0 +1,45 @@
+ApiVersion: v0.18
+
+Metadata:
+  Name: Openssl Self-Signed
+  Tags:
+  - job
+  - ssl
+  - certificate
+  - security
+  About: Generate a self-signed SSL certificate using OpenSSL and store it as a Nanocl secret.
+  LongAbout: |
+    This job generates a self-signed SSL certificate using OpenSSL and stores it as a Nanocl secret.
+    It is useful for testing purposes or internal services where a trusted CA-signed certificate is not required.
+
+Args:
+- Name: domain
+  Kind: String
+  Required: true
+
+Jobs:
+- Name: openssl-self-signed
+  Ttl: 5
+  Containers:
+  - Image: ubuntu:24.04
+    HostConfig:
+      Binds:
+      - /run/nanocl/nanocl.sock:/run/nanocl/nanocl.sock
+    Cmd:
+    - /bin/sh
+    - '-c'
+    - |
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update -yqq
+      apt-get install -yqq openssl wget
+      wget https://github.com/next-hat/nanocl/releases/download/nanocl-0.18.0/nanocl_0.18.0_amd64.deb
+      dpkg -i nanocl_0.18.0_amd64.deb
+      openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem -days 365 -subj "/CN=${{ Args.domain }}"
+      # Test if secret already exists and patch it instead
+      if nanocl secret inspect tls.${{ Args.domain }} > /dev/null 2>&1; then
+        nanocl secret patch tls.${{ Args.domain }} tls --certificate-path ./cert.pem --certificate-key-path ./key.pem
+        echo "Self-signed certificate for domain '${{ Args.domain }}' has been updated and stored as secret 'tls.${{ Args.domain }}'."
+      else
+        nanocl secret create tls.${{ Args.domain }} tls --certificate-path ./cert.pem --certificate-key-path ./key.pem
+        echo "Self-signed certificate for domain '${{ Args.domain }}' has been created and stored as secret 'tls.${{ Args.domain }}'."
+      fi
