@@ -26,3 +26,22 @@ Expected folder structure
 
 Notes
 - Data is loaded once at server startup and cached in memory per version.
+
+### Production Docker image
+
+Build from the repository root:
+
+```bash
+docker build -t nanocl-registry .
+docker run --rm -p 3000:3000 nanocl-registry
+```
+
+The build uses the committed npm lockfile. `scripts/prepare-runtime.mjs` combines
+Next.js output traces with the custom Express server's dependencies, keeping
+development tooling, source maps, and build caches out of the runtime image.
+The container runs directly with Node as an unprivileged user and includes the
+registry's Statefiles. Its defaults can be overridden with `PORT`,
+`NANOCL_REGISTRY_PATH`, and `NANOCL_LATEST_VERSION`.
+
+The UI package is a Git submodule. Initialize it before building from a fresh
+clone with `git submodule update --init --recursive`.

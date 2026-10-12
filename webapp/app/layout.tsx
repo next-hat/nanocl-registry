@@ -1,11 +1,16 @@
 import React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { IBM_Plex_Mono } from "next/font/google"
-import { Footer, type FooterElementProps } from "@next-hat/ui/components/footer"
-import { Header } from "@next-hat/ui/components/header"
+import { cookies } from "next/headers"
+import { ThemeProvider } from "@next-hat/ui/components/theme-provider"
+import { parseTheme, THEME_COOKIE_NAME } from "@next-hat/ui/lib/theme"
 import { GoogleAnalytics } from "@next/third-parties/google"
 
+import { RegistryFooter } from "@/components/registry-footer"
+import { RegistryHeader } from "@/components/registry-header"
+
 import "@next-hat/ui/styles/globals.css"
+import "./brand.css"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://nr.next-hat.com"),
@@ -82,14 +87,16 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: "/favicon.png", sizes: "32x32", type: "image/png" }],
   },
+}
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  colorScheme: "light dark",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#0b0b0b" },
   ],
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-  },
 }
 
 const font = IBM_Plex_Mono({
@@ -98,70 +105,20 @@ const font = IBM_Plex_Mono({
   variable: "--font-ibm-plex-mono",
 })
 
-const footerElements: FooterElementProps[] = [
-  {
-    title: "Resources",
-    links: [
-      { title: "Cloud", href: "https://next-hat.com", target: "_blank" },
-      { title: "Docs", href: "https://docs.next-hat.com", target: "_blank" },
-      {
-        title: "Blog",
-        href: "https://docs.next-hat.com/blog",
-        target: "_blank",
-      },
-    ],
-  },
-  {
-    title: "Community",
-    links: [
-      {
-        title: "X",
-        href: "https://x.com/next_hat",
-        target: "_blank",
-      },
-      {
-        title: "Discord",
-        href: "https://discord.gg/WV4Aac8uZg",
-        target: "_blank",
-      },
-      {
-        title: "Discussion",
-        href: "https://github.com/orgs/next-hat/discussions",
-        target: "_blank",
-      },
-    ],
-  },
-  {
-    title: "More",
-    links: [
-      {
-        title: "Status",
-        href: "https://status.next-hat.com",
-        target: "_blank",
-      },
-      {
-        title: "Github",
-        href: "https://github.com/next-hat",
-        target: "_blank",
-      },
-    ],
-  },
-  {
-    title: "Legal",
-    links: [
-      { title: "Privacy Policy", href: "/legal/privacy-policy" },
-      { title: "Terms of Service", href: "/legal/tos" },
-    ],
-  },
-]
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE_NAME)?.value)
+
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={theme === "system" ? undefined : theme}
+      style={{ colorScheme: theme === "system" ? "light dark" : theme }}
+      suppressHydrationWarning
+    >
       <head>
         <link rel="icon" href="/favicon.png" />
         {/* Organization & WebSite structured data */}
@@ -200,13 +157,25 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${font.variable} bg-secondary font-sans antialiased text-foreground min-h-screen flex flex-col`}
+        className={`${font.variable} bg-background font-sans antialiased text-foreground min-h-screen flex flex-col`}
       >
-        <Header items={[]} />
-        <main className="max-w-5xl mt-15 mx-auto px-4 py-6 flex-1 w-full">
-          {children}
-        </main>
-        <Footer footerElements={footerElements} />
+        <ThemeProvider defaultTheme={theme}>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-3 focus:text-primary-foreground"
+          >
+            Skip to content
+          </a>
+          <RegistryHeader />
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className="mx-auto mt-16 w-full max-w-7xl flex-1 px-5 py-10 sm:px-8 sm:py-14 lg:px-12"
+          >
+            {children}
+          </main>
+          <RegistryFooter />
+        </ThemeProvider>
       </body>
       <GoogleAnalytics gaId="G-PE9F5EFX1D" />
     </html>

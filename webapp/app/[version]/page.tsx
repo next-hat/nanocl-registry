@@ -1,7 +1,13 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { notFound } from "next/navigation"
+import { Badge } from "@next-hat/ui/components/ui/badge"
+import { Button } from "@next-hat/ui/components/ui/button"
+import { ArrowUpRight, BookOpen } from "lucide-react"
 
-import SearchableList from "../../components/searchable-list"
+import SearchableList, {
+  type StatefileItem,
+} from "../../components/searchable-list"
 
 type PageProps = {
   params: Promise<{ version: string }>
@@ -42,11 +48,13 @@ export default async function VersionPage({ params, searchParams }: PageProps) {
   const { version } = await params
   const sParams = await searchParams
   if (!sParams.data) return notFound()
-  const data = JSON.parse(sParams.data)
-  if (!data) return <div className="text-red-600">Version not found</div>
+  const data = JSON.parse(sParams.data) as {
+    statefiles: Record<string, StatefileItem>
+  }
+  if (!data) return <div className="text-destructive">Version not found</div>
   const list = Object.values(data.statefiles)
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       {/* Structured data for version collection */}
       <script
         type="application/ld+json"
@@ -60,12 +68,41 @@ export default async function VersionPage({ params, searchParams }: PageProps) {
           }),
         }}
       />
-      <h1 className="text-4xl text-center font-semibold">Nanocl Registry</h1>
-      <h2 className="text-2xl text-center font-medium">{version}</h2>
-      <h3 className="text-lg text-center font-medium text-muted-foreground">
-        Browse and deploy production-ready Statefiles for Nanocl
-      </h3>
-      <SearchableList items={list as any} version={version} />
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="max-w-3xl space-y-4">
+          <p className="font-mono text-xs font-medium uppercase tracking-widest text-primary">
+            Statefile catalog
+          </p>
+          <div className="flex flex-wrap items-center gap-4">
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              Nanocl Registry
+            </h1>
+            <Badge variant="outline" className="h-6 font-mono">
+              Nanocl {version}
+            </Badge>
+          </div>
+          <p className="text-base leading-relaxed text-muted-foreground">
+            Browse production-ready Statefiles. Find a service, read the manual,
+            and deploy it with Nanocl.
+          </p>
+        </div>
+        <Button
+          asChild
+          variant="outline"
+          className="h-10 self-start sm:self-auto"
+        >
+          <Link
+            href="https://docs.next-hat.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <BookOpen aria-hidden="true" />
+            Documentation
+            <ArrowUpRight aria-hidden="true" />
+          </Link>
+        </Button>
+      </header>
+      <SearchableList items={list} version={version} />
     </div>
   )
 }

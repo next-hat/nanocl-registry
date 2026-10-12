@@ -23,24 +23,27 @@ app.prepare().then(() => {
     return ua.includes("nanocl");
   }
   server.use("/public", express.static(path.join(__dirname, './public')))
-  // Home redirects to latest version page
+  // Home renders the latest version page without redirecting
   server.get("/", (req, res) => {
     const version = registry.getLatestVersion();
     const data = JSON.stringify(registry.getVersion(version));
-    return app.render(req, res, `/${version}`, { data });
+    return handle(req, res, { pathname: `/${version}`, query: { data } });
   });
   // Version main page: /v0.16
   server.get("/:version", (req, res) => {
     const { version } = req.params;
     const data = JSON.stringify(registry.getVersion(version));
-    return app.render(req, res, `/${version}`, { data });
+    return handle(req, res, { pathname: `/${version}`, query: { data } });
   });
   // Tag page: /tag/security -> uses latest version by default
   server.get("/tag/:tag", (req, res) => {
     const { tag } = req.params;
     const version = registry.getLatestVersion();
     const data = JSON.stringify(registry.getByTag(version, tag));
-    return app.render(req, res, `/tag/${tag}`, { version, data });
+    return handle(req, res, {
+      pathname: `/tag/${tag}`,
+      query: { version, data },
+    });
   });
   server.get("/:version/:statefile/:statefile_version", (req, res) => {
     const { version, statefile, statefile_version } = req.params;
@@ -53,8 +56,9 @@ app.prepare().then(() => {
       res.setHeader("Content-Type", "text/yaml; charset=utf-8");
       return res.send(entry.yamlText);
     }
-    return app.render(req, res, `/${version}/${statefile}`, {
-      entry: JSON.stringify(entry),
+    return handle(req, res, {
+      pathname: `/${version}/${statefile}`,
+      query: { entry: JSON.stringify(entry) },
     });
   });
   // Statefile page or raw YAML depending on User-Agent
@@ -70,8 +74,9 @@ app.prepare().then(() => {
       res.setHeader("Content-Type", "text/yaml; charset=utf-8");
       return res.send(entry.yamlText);
     }
-    return app.render(req, res, `/${version}/${statefile}`, {
-      entry: JSON.stringify(entry),
+    return handle(req, res, {
+      pathname: `/${version}/${statefile}`,
+      query: { entry: JSON.stringify(entry) },
     });
   });
   // Fallback to Next handler

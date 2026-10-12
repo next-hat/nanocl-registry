@@ -1,0 +1,17 @@
+**
+!Dockerfile
+!.dockerignore
+!webapp/
+!webapp/**
+!statefiles/
+!statefiles/**
+
+webapp/**/node_modules
+webapp/**/.next
+webapp/**/.git
+webapp/**/.vscode
+webapp/**/.env*
+webapp/**/coverage
+webapp/**/*.tsbuildinfo
+webapp/**/npm-debug.log*
+webapp/**/.DS_Store

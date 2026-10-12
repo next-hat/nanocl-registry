@@ -1,5 +1,14 @@
 "use client"
 
+import { useRef } from "react"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@next-hat/ui/components/ui/input-group"
+import { Search, X } from "lucide-react"
+
 export interface SearchBarProps {
   placeholder?: string
   onChange?: (value: string) => void
@@ -13,16 +22,38 @@ export default function SearchBar({
   value = "",
   id,
 }: SearchBarProps) {
+  const inputRef = useRef<HTMLInputElement>(null)
+
   return (
-    <div className="w-full">
-      <input
+    <InputGroup className="h-12 bg-background">
+      <InputGroupAddon className="pl-4">
+        <Search aria-hidden="true" />
+      </InputGroupAddon>
+      <InputGroupInput
+        ref={inputRef}
         id={id}
+        type="search"
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
-        className="w-full rounded-md border border-input bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        className="h-12 [&::-webkit-search-cancel-button]:appearance-none"
         placeholder={placeholder}
-        aria-label="Search"
+        aria-label="Search Statefiles"
       />
-    </div>
+      {value && (
+        <InputGroupAddon align="inline-end">
+          <InputGroupButton
+            size="icon-sm"
+            className="size-10"
+            aria-label="Clear search"
+            onClick={() => {
+              onChange?.("")
+              inputRef.current?.focus()
+            }}
+          >
+            <X aria-hidden="true" />
+          </InputGroupButton>
+        </InputGroupAddon>
+      )}
+    </InputGroup>
   )
 }
