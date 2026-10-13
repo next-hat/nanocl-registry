@@ -20,9 +20,10 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@next-hat/ui/components/ui/empty"
-import { ArrowUpRight, Package, SearchX } from "lucide-react"
+import { ArrowUpRight, SearchX } from "lucide-react"
 
 import SearchBar from "./search-bar"
+import { StatefileLogo } from "./statefile-logo"
 
 export interface StatefileItem {
   slug: string
@@ -30,6 +31,7 @@ export interface StatefileItem {
   about: string
   latestVersion: string
   tags: string[]
+  logoUrl?: string
 }
 
 export default function SearchableList({
@@ -84,9 +86,7 @@ export default function SearchableList({
               <Card className="h-full transition-colors hover:ring-primary/30 [--card-spacing:--spacing(6)]">
                 <CardHeader className="gap-4">
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex size-10 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
-                      <Package className="size-5" aria-hidden="true" />
-                    </div>
+                    <StatefileLogo src={s.logoUrl} name={s.name} size="sm" />
                     <Badge
                       variant="outline"
                       className="font-mono text-muted-foreground"
