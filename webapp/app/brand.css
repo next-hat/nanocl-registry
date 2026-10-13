@@ -22,6 +22,43 @@ html {
   scroll-padding-top: 6rem;
 }
 
+.registry-container {
+  width: 100%;
+  max-width: var(--container-7xl);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+
+  @media (width >= 40rem) {
+    padding-inline: 2rem;
+  }
+
+  @media (width >= 64rem) {
+    padding-inline: 3rem;
+  }
+}
+
+/* Match the platform's landing hero gradient and masked infrastructure grid. */
+.statefile-hero {
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 152, 0, 0.12) 0%,
+    rgba(99, 102, 241, 0.10) 50%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+}
+
+.statefile-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(50% 50% at 50% 50%, black 30%, transparent 100%);
+}
+
 .registry-prose {
   color: hsl(var(--foreground));
   font-size: 0.9375rem;
@@ -108,6 +145,18 @@ html {
   font-size: 0.8125rem;
   line-height: 1.75;
   overflow-wrap: normal;
+}
+
+.registry-prose .registry-code-block {
+  max-width: 100%;
+  margin-block: 1.5rem;
+  overflow-wrap: normal;
+}
+
+.registry-prose .registry-code-block > pre {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
 }
 
 .registry-prose :not(pre, .hljs) > code {

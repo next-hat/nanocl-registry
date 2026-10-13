@@ -1,9 +1,10 @@
 import type { Metadata } from "next"
+import { isValidElement, type ReactNode } from "react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Badge } from "@next-hat/ui/components/ui/badge"
 import { Button } from "@next-hat/ui/components/ui/button"
-import { ArrowLeft, ArrowUpRight, BookOpen, FileCode2 } from "lucide-react"
+import { ArrowLeft, ArrowUpRight, BookOpen } from "lucide-react"
 import Markdown from "react-markdown"
 import SyntaxHighlighter from "react-syntax-highlighter"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
@@ -13,6 +14,8 @@ import remarkGfm from "remark-gfm"
 
 import { statefileToMarkdown } from "../../../lib/statefileToMarkdown"
 import { ShareStatefile } from "@/components/share-statefile"
+import { StatefileCodeBlock } from "@/components/statefile-code-block"
+import { StatefileLogo } from "@/components/statefile-logo"
 import {
   absoluteUrl,
   pageMetadata,
@@ -52,6 +55,7 @@ function parseEntry(serialized: string | undefined): ManualEntry {
     !item.yamlText ||
     (item.slug !== undefined && typeof item.slug !== "string") ||
     (item.longAbout !== undefined && typeof item.longAbout !== "string") ||
+    (item.logoUrl !== undefined && typeof item.logoUrl !== "string") ||
     (item.version !== undefined && typeof item.version !== "string") ||
     (item.latestVersion !== undefined && typeof item.latestVersion !== "string") ||
     !(
@@ -88,51 +92,49 @@ export default async function StatefilePage({
     absoluteUrl(page.path).replace(/^https:\/\//, "")
   )
   return (
-    <div className="flex min-w-0 flex-col gap-8">
+    <div className="flex min-w-0 w-full flex-col">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: serializeJsonLd(pageSchema(page)),
         }}
       />
-      <Link
-        href={`/${version}`}
-        className="inline-flex min-h-11 w-fit items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-      >
-        <ArrowLeft className="size-4" aria-hidden="true" />
-        All Statefiles
-      </Link>
-      <header className="flex flex-col gap-4 border-b border-border pb-8">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-lg border border-border bg-card text-primary">
-            <FileCode2 className="size-5" aria-hidden="true" />
-          </span>
-          <Badge variant="outline">Nanocl {version}</Badge>
-          <span className="font-mono text-xs text-muted-foreground">
-            Statefile {statefileVersion}
-          </span>
-        </div>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-4">
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+      <header className="statefile-hero relative isolate w-full overflow-hidden border-b border-border py-8 sm:py-10">
+        <div className="registry-container relative flex flex-col gap-8">
+          <Link
+            href={`/${version}`}
+            className="inline-flex min-h-11 w-fit items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+          >
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            All Statefiles
+          </Link>
+          <div className="flex flex-col items-center gap-5 pb-8 text-center sm:pb-10">
+            <StatefileLogo src={entry.logoUrl} name={entry.name} />
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Badge variant="outline">Nanocl {version}</Badge>
+              <span className="font-mono text-xs text-muted-foreground">
+                Statefile {statefileVersion}
+              </span>
+            </div>
+            <h1 className="max-w-4xl text-4xl leading-tight font-extrabold tracking-tight text-balance md:text-6xl lg:text-7xl">
               {entry.name}
             </h1>
             {entry.about && (
-              <p className="max-w-3xl text-base leading-7 text-muted-foreground">
+              <p className="max-w-2xl text-base leading-7 text-pretty text-muted-foreground sm:text-lg">
                 {entry.about}
               </p>
             )}
-          </div>
-          <div className="w-full shrink-0 sm:w-40">
-            <ShareStatefile
-              url={absoluteUrl(page.path)}
-              title={page.title}
-              text={page.description}
-            />
+            <div className="w-full max-w-40">
+              <ShareStatefile
+                url={absoluteUrl(page.path)}
+                title={page.title}
+                text={page.description}
+              />
+            </div>
           </div>
         </div>
       </header>
-      <div className="grid min-w-0 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-12">
+      <div className="registry-container grid min-w-0 items-start gap-8 py-10 sm:py-14 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-12">
         <article
           aria-label={`${entry.name} manual`}
           className="registry-prose min-w-0"
@@ -141,21 +143,22 @@ export default async function StatefilePage({
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeSlug, rehypeAutolinkHeadings, rehypeRaw]}
             components={{
-              code(props) {
-                const { children, className, node, ref, ...rest } = props
-                const match = /language-(\w+)/.exec(className || "")
-                return match ? (
-                  <SyntaxHighlighter
-                    language={match[1]}
-                    useInlineStyles={false}
-                    PreTag="div"
-                  >
-                    {String(children).replace(/\n$/, "")}
-                  </SyntaxHighlighter>
-                ) : (
-                  <code {...rest} className={className}>
-                    {children}
-                  </code>
+              pre({ children }) {
+                if (!isValidElement<{ children?: ReactNode; className?: string }>(children)) {
+                  return <pre>{children}</pre>
+                }
+                const code = String(children.props.children ?? "").replace(/\n$/, "")
+                const language = /language-([\w-]+)/.exec(children.props.className || "")?.[1]
+                return (
+                  <StatefileCodeBlock key={code} code={code} language={language}>
+                    <SyntaxHighlighter
+                      language={language || "text"}
+                      useInlineStyles={false}
+                      PreTag="pre"
+                    >
+                      {code}
+                    </SyntaxHighlighter>
+                  </StatefileCodeBlock>
                 )
               },
             }}

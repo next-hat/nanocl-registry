@@ -72,7 +72,7 @@ export default async function VersionPage({ params, searchParams }: PageProps) {
   const page = versionSeo(version, data, sParams.home === "1")
   const list = Object.values(data.statefiles)
   return (
-    <div className="space-y-10">
+    <div className="registry-container flex flex-col gap-10 py-10 sm:py-14">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

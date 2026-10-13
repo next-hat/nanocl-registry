@@ -1,7 +1,7 @@
 /**
  * Nanocl Registry in-memory loader
- * Scans a base folder structured as: /folder/{nanocl_version}/{statefilename}/{statefile_version}/
- * - Each statefile folder may contain a `.metadata.json` with `{ "latest_version": "0.1.0" }`
+ * Scans a base folder structured as: /folder/{nanocl_version}/{statefilename}/
+ * - Each statefile folder may contain `.metadata.json` settings for `latest_version` and optional `logo_url`
  * - The YAML statefile is expected at `{statefile_version}.yml` inside the statefile folder
  * - Alternatively, inside a subfolder: `{statefile_version}/{statefile_version}.yml`
  *
@@ -9,10 +9,10 @@
  *   statefiles: {
  *     [statefileName]: {
  *       // Latest version fields (for backward compatibility)
- *       slug, name, about, longAbout, tags, latestVersion, yamlPath, yamlText,
+ *       slug, name, about, longAbout, tags, latestVersion, logoUrl?, yamlPath, yamlText,
  *       // All discovered versions
  *       versions: {
- *         [ver]: { version, name, about, longAbout, tags, yamlPath, yamlText }
+ *         [ver]: { version, name, about, longAbout, tags, logoUrl?, yamlPath, yamlText }
  *       }
  *     }
  *   },
@@ -58,6 +58,27 @@ function extractMeta(yml) {
 }
 
 /**
+ * Accept a public asset path or a credential-free HTTPS URL for a browser logo.
+ * @param {unknown} value
+ * @returns {string | undefined}
+ */
+function normalizeLogoUrl(value) {
+  if (typeof value !== "string") return undefined
+  const logoUrl = value.trim()
+  if (!logoUrl || /[\u0000-\u001f\u007f\\]/.test(logoUrl)) return undefined
+  if (logoUrl.startsWith("/") && !logoUrl.startsWith("//")) return logoUrl
+  try {
+    const url = new URL(logoUrl)
+    if (url.protocol !== "https:" || url.username || url.password) {
+      return undefined
+    }
+    return url.toString()
+  } catch {
+    return undefined
+  }
+}
+
+/**
  * Discover all versions available for a given statefile by scanning .yml files.
  * Supports two layouts:
  *  - Direct: {stateDir}/{ver}.yml
@@ -65,11 +86,11 @@ function extractMeta(yml) {
  * @param {string} basePath
  * @param {string} versionDir
  * @param {string} stateSlug
- * @returns {Record<string, { version: string, name: string, about: string, longAbout: string, tags: string[], yamlPath: string, yamlText: string }>} versions map
+ * @returns {Record<string, { version: string, name: string, about: string, longAbout: string, tags: string[], logoUrl?: string, yamlPath: string, yamlText: string }>} versions map
  */
 function discoverVersions(basePath, versionDir, stateSlug) {
   const stateDir = path.join(basePath, versionDir, stateSlug)
-  /** @type {Record<string, { version: string, name: string, about: string, longAbout: string, tags: string[], yamlPath: string, yamlText: string }> } */
+  /** @type {Record<string, { version: string, name: string, about: string, longAbout: string, tags: string[], logoUrl?: string, yamlPath: string, yamlText: string }> } */
   const versions = {}
 
   if (!isDirectory(stateDir)) return versions
@@ -162,7 +183,7 @@ function loadStatefile(basePath, versionDir, stateSlug) {
   if (!fileExists(metaPath)) {
     return null // skip if metadata missing
   }
-  /** @type {{ latest_version?: string }} */
+  /** @type {{ latest_version?: string, logo_url?: unknown }} */
   let meta
   try {
     meta = JSON.parse(fs.readFileSync(metaPath, "utf8"))
@@ -172,6 +193,7 @@ function loadStatefile(basePath, versionDir, stateSlug) {
   }
   const latestVersion = meta.latest_version
   if (!latestVersion) return null
+  const logoUrl = normalizeLogoUrl(meta.logo_url)
 
   // Discover all available versions
   const versions = discoverVersions(basePath, versionDir, stateSlug)
@@ -205,6 +227,10 @@ function loadStatefile(basePath, versionDir, stateSlug) {
 
   if (!latest) return null // cannot resolve latest
 
+  if (logoUrl) {
+    for (const revision of Object.values(versions)) revision.logoUrl = logoUrl
+  }
+
   return {
     slug: stateSlug,
     // latest version fields kept for compatibility
@@ -213,6 +239,7 @@ function loadStatefile(basePath, versionDir, stateSlug) {
     longAbout: latest.longAbout || "",
     tags: Array.isArray(latest.tags) ? latest.tags : [],
     latestVersion,
+    ...(logoUrl ? { logoUrl } : {}),
     yamlPath: latest.yamlPath,
     yamlText: latest.yamlText,
     versions,
@@ -323,7 +350,7 @@ function getStatefile(version, slug) {
  * @param {string} version Base nanocl version (e.g., "v0.17")
  * @param {string} slug Statefile slug (e.g., "certbot")
  * @param {string} wantedVersion Statefile version (e.g., "0.1.0")
- * @returns {null | { version: string, name: string, about: string, longAbout: string, tags: string[], yamlPath: string, yamlText: string }}
+ * @returns {null | { version: string, name: string, about: string, longAbout: string, tags: string[], logoUrl?: string, yamlPath: string, yamlText: string }}
  */
 function getStatefileVersion(version, slug, wantedVersion) {
   ensureInitialized()

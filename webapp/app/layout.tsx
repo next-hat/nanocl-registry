@@ -65,7 +65,7 @@ export default async function RootLayout({
           <main
             id="main-content"
             tabIndex={-1}
-            className="mx-auto mt-16 w-full max-w-7xl flex-1 px-5 py-10 sm:px-8 sm:py-14 lg:px-12"
+            className="mt-16 w-full flex-1"
           >
             {children}
           </main>

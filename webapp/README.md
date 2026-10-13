@@ -26,13 +26,37 @@ clipboard, with a selectable link when clipboard access is unavailable.
 
 Expected folder structure
 ```
-/folder/{nanocl_version}/{statefilename}/{statefile_version}/
+/folder/{nanocl_version}/{statefilename}/
 	.metadata.json                 # { "latest_version": "0.1.0" }
 	{statefile_version}.yml        # YAML with Metadata: { Name, Tags, About, LongAbout }
 ```
 
 Notes
 - Data is loaded once at server startup and cached in memory per version.
+
+### Statefile logos
+
+Optionally set `logo_url` in a Statefile folder's `.metadata.json`, for example
+`statefiles/v0.18/my-service/.metadata.json`:
+
+```json
+{
+  "latest_version": "0.1.0",
+  "logo_url": "/logos/my-service.svg"
+}
+```
+
+Place that asset at `webapp/public/logos/my-service.svg`. An absolute HTTPS URL,
+such as `https://example.com/my-service.svg`, is also supported. The registry
+trims the setting and accepts public asset paths or HTTPS URLs without embedded
+credentials. Unsupported values are ignored. A missing or failed logo displays
+the Statefile icon in the same fixed-size space.
+
+This registry setting applies to the latest entry and every revision in that
+Statefile folder. It does not modify the Nanocl YAML `Metadata` block or raw
+YAML downloads. Remote logos load in the browser; the server does not fetch
+them. Restart the registry after changing settings because it loads them at
+startup.
 
 ### Production Docker image
 

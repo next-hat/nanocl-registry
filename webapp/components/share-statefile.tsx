@@ -1,9 +1,15 @@
 "use client"
 
-import { useEffect, useId, useRef, useState } from "react"
+import { useId, useRef, useState } from "react"
 import { Check, Share2 } from "lucide-react"
 import { Button } from "@next-hat/ui/components/ui/button"
 import { Input } from "@next-hat/ui/components/ui/input"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@next-hat/ui/components/ui/popover"
 
 export function ShareStatefile({
   url,
@@ -18,13 +24,6 @@ export function ShareStatefile({
   const [pending, setPending] = useState(false)
   const linkRef = useRef<HTMLInputElement>(null)
   const statusId = useId()
-
-  useEffect(() => {
-    if (result === "manual") {
-      linkRef.current?.focus()
-      linkRef.current?.select()
-    }
-  }, [result])
 
   async function share() {
     setResult(null)
@@ -74,35 +73,62 @@ export function ShareStatefile({
 
   return (
     <div className="w-full min-w-0">
-      <Button
-        type="button"
-        variant="outline"
-        className="min-h-11 w-full"
-        onClick={share}
-        disabled={pending}
-        aria-busy={pending}
+      <Popover
+        open={result === "manual"}
+        onOpenChange={(open) => {
+          if (!open) setResult(null)
+        }}
       >
-        <Icon data-icon="inline-start" aria-hidden="true" />
-        Share
-      </Button>
-      <div id={statusId} role="status" aria-live="polite" aria-atomic="true">
-        {message && (
-          <p className="mt-2 text-sm text-muted-foreground">{message}</p>
-        )}
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11 w-full"
+            onClick={(event) => {
+              event.preventDefault()
+              void share()
+            }}
+            disabled={pending}
+            aria-busy={pending}
+          >
+            <Icon data-icon="inline-start" aria-hidden="true" />
+            Share
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="end"
+          sideOffset={8}
+          className="max-w-[calc(100vw-2rem)]"
+          aria-label="Copy Statefile link"
+          onOpenAutoFocus={(event) => {
+            event.preventDefault()
+            linkRef.current?.focus()
+            linkRef.current?.select()
+          }}
+        >
+          <PopoverTitle>Copy link</PopoverTitle>
+          <Input
+            ref={linkRef}
+            type="text"
+            inputMode="url"
+            value={url}
+            readOnly
+            aria-label="Statefile link"
+            aria-describedby={statusId}
+            className="min-h-11"
+            onFocus={(event) => event.currentTarget.select()}
+          />
+        </PopoverContent>
+      </Popover>
+      <div
+        id={statusId}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {message}
       </div>
-      {result === "manual" && (
-        <Input
-          ref={linkRef}
-          type="text"
-          inputMode="url"
-          value={url}
-          readOnly
-          aria-label="Statefile link"
-          aria-describedby={statusId}
-          className="mt-2 min-h-11"
-          onFocus={(event) => event.currentTarget.select()}
-        />
-      )}
     </div>
   )
 }

@@ -69,7 +69,7 @@ export default async function TagPage({ params, searchParams }: PageProps) {
   if (typeof version !== "string" || !version) notFound()
   const page = tagSeo(tag, version, list)
   return (
-    <div className="space-y-10">
+    <div className="registry-container flex flex-col gap-10 py-10 sm:py-14">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

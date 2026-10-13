@@ -15,6 +15,7 @@ export type StatefileEntry = {
   tags?: string[]
   version?: string
   latestVersion?: string
+  logoUrl?: string
   versions?: Record<string, StatefileEntry>
 }
 

@@ -23,10 +23,12 @@ app.prepare().then(() => {
     return ua.includes("nanocl");
   }
   server.use("/public", express.static(path.join(__dirname, './public')))
+  // Local logo settings can reference any asset in the public directory.
+  server.use(express.static(path.join(__dirname, './public'), { index: false, redirect: false }))
   // Keep Next assets and crawler/social routes out of the Statefile rewrites.
   server.use((req, res, next) => {
     if (
-      /^\/(?:_next|social|fonts|seo)\//.test(req.path) ||
+      /^\/(?:_next|social|fonts|seo|logos)\//.test(req.path) ||
       ["/robots.txt", "/sitemap.xml", "/manifest.webmanifest", "/favicon.png",
         "/logo3.png", "/icon", "/apple-icon", "/apple-touch-icon.png",
         "/icon-192.png", "/icon-512.png"].includes(req.path)
