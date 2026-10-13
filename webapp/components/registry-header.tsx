@@ -27,24 +27,30 @@ export function RegistryHeader() {
         <Link
           href="/"
           aria-label="Nanocl Registry home"
-          className="flex shrink-0 items-center gap-3 rounded-md focus-visible:outline-2 focus-visible:outline-ring"
+          className="flex shrink-0 items-center gap-2.5 rounded-md focus-visible:outline-2 focus-visible:outline-ring"
         >
           <Image
             src="/logo3.png"
             alt=""
-            width={36}
-            height={36}
+            width={32}
+            height={32}
             priority
             className="rounded-full"
           />
-          <span className="text-lg font-semibold tracking-tight">Next Hat</span>
-          <span className="hidden border-l pl-3 text-xs text-muted-foreground sm:inline">
+          <span className="text-sm font-semibold">Next Hat</span>
+          <span
+            aria-hidden="true"
+            className="hidden px-2 text-sm text-muted-foreground/45 sm:inline"
+          >
+            /
+          </span>
+          <span className="hidden text-sm text-muted-foreground sm:inline">
             Registry
           </span>
         </Link>
         <nav
           aria-label="Main navigation"
-          className="hidden items-center gap-7 md:flex"
+          className="ml-auto hidden items-center gap-6 md:flex"
         >
           {links.map(({ title, href, current }) => (
             <Link

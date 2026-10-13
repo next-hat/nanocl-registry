@@ -185,22 +185,77 @@ html {
   color: hsl(var(--foreground));
 }
 
-.registry-prose table {
-  display: block;
+.registry-prose [data-slot="table-container"] {
   max-width: 100%;
-  overflow-x: auto;
+  margin-block: 1.25rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.registry-prose table {
+  width: 100%;
+  min-width: 44rem;
+  margin: 0;
   border-collapse: collapse;
+  font-size: 0.875rem;
+  line-height: 1.65;
 }
 
 .registry-prose :is(th, td) {
-  padding: 0.75rem 1rem;
-  border: 1px solid hsl(var(--border));
+  padding: 1rem;
   text-align: left;
+  vertical-align: top;
+}
+
+.registry-prose thead,
+.registry-prose tbody tr:not(:last-child) {
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .registry-prose th {
   background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
   font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.registry-prose :is(th, td):first-child {
+  width: 24%;
+}
+
+.registry-prose :is(th, td):nth-child(2) {
+  width: 12%;
+}
+
+.registry-prose :is(th, td):nth-child(3) {
+  width: 38%;
+}
+
+.registry-prose td:first-child {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  line-height: 2;
+}
+
+.registry-prose td:first-child code {
+  color: hsl(var(--foreground));
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.registry-prose td code {
+  white-space: pre-wrap;
+}
+
+.registry-prose td small {
+  font-size: 0.75rem;
+}
+
+.registry-prose td:nth-child(2) code {
+  padding: 0;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
 }
 
 .registry-prose img {

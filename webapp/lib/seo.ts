@@ -201,8 +201,8 @@ export const siteMetadata: Metadata = {
   creator: "Next Hat",
   publisher: "Next Hat",
   icons: {
-    icon: [{ url: "/seo/favicon-32.png", sizes: "32x32", type: "image/png" }],
-    shortcut: "/seo/favicon-32.png",
+    icon: [{ url: "/favicon.png", sizes: "720x720", type: "image/png" }],
+    shortcut: "/favicon.png",
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   robots: {

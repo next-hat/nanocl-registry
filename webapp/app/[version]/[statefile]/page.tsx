@@ -4,6 +4,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Badge } from "@next-hat/ui/components/ui/badge"
 import { Button } from "@next-hat/ui/components/ui/button"
+import { Table } from "@next-hat/ui/components/ui/table"
 import { ArrowLeft, ArrowUpRight, BookOpen } from "lucide-react"
 import Markdown from "react-markdown"
 import SyntaxHighlighter from "react-syntax-highlighter"
@@ -124,6 +125,15 @@ export default async function StatefilePage({
                 {entry.about}
               </p>
             )}
+            {entry.tags.length > 0 && (
+              <div aria-label="Tags" className="flex flex-wrap justify-center gap-2">
+                {entry.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary" asChild>
+                    <Link href={`/tag/${encodeURIComponent(tag)}`}>{tag}</Link>
+                  </Badge>
+                ))}
+              </div>
+            )}
             <div className="w-full max-w-40">
               <ShareStatefile
                 url={absoluteUrl(page.path)}
@@ -143,6 +153,12 @@ export default async function StatefilePage({
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeSlug, rehypeAutolinkHeadings, rehypeRaw]}
             components={{
+              table({ node: _node, ref: _ref, key: _key, ...props }) {
+                return <Table aria-label="Statefile reference table" {...props} />
+              },
+              th({ node: _node, ...props }) {
+                return <th scope="col" {...props} />
+              },
               pre({ children }) {
                 if (!isValidElement<{ children?: ReactNode; className?: string }>(children)) {
                   return <pre>{children}</pre>
@@ -186,15 +202,6 @@ export default async function StatefilePage({
                 <dd className="font-mono">YAML</dd>
               </div>
             </dl>
-            {entry.tags?.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {entry.tags.map((tag: string) => (
-                  <Badge key={tag} variant="secondary" asChild>
-                    <Link href={`/tag/${encodeURIComponent(tag)}`}>{tag}</Link>
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
           <div className="flex flex-col gap-3 border-t border-border pt-6">
             <p className="text-sm leading-6 text-muted-foreground">
