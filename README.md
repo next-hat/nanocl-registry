@@ -19,8 +19,12 @@ Feel free to introduce new statefiles by opening a pull request.
 ## Run the webapp locally
 
   ```bash
-  git clone https://github.com/next-hat/nanocl-registry
+  git clone --recurse-submodules https://github.com/next-hat/nanocl-registry
   cd nanocl-registry/webapp
-  npm install
-  npm run dev
+  pnpm install --frozen-lockfile
+  pnpm dev
 ```
+
+Use Node.js 26.12.1 and pnpm 12.15.0 (the version pinned in
+`webapp/package.json`). See the [webapp README](webapp/README.md) for production
+Docker instructions.

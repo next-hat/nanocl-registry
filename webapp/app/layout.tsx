@@ -2,9 +2,9 @@ import React from "react"
 import type { Metadata, Viewport } from "next"
 import { IBM_Plex_Mono } from "next/font/google"
 import { cookies } from "next/headers"
+import Script from "next/script"
 import { ThemeProvider } from "@next-hat/ui/components/theme-provider"
 import { parseTheme, THEME_COOKIE_NAME } from "@next-hat/ui/lib/theme"
-import { GoogleAnalytics } from "@next/third-parties/google"
 
 import { RegistryFooter } from "@/components/registry-footer"
 import { RegistryHeader } from "@/components/registry-header"
@@ -71,8 +71,13 @@ export default async function RootLayout({
           </main>
           <RegistryFooter />
         </ThemeProvider>
+        <Script
+          defer
+          src="https://analytics.next-hat.com/script.js"
+          data-website-id="1c71035a-c95a-4f0d-b796-b4d3caaee39b"
+          strategy="afterInteractive"
+        />
       </body>
-      <GoogleAnalytics gaId="G-PE9F5EFX1D" />
     </html>
   )
 }

@@ -14,4 +14,6 @@ webapp/**/.env*
 webapp/**/coverage
 webapp/**/*.tsbuildinfo
 webapp/**/npm-debug.log*
+webapp/**/.pnpm-store
+webapp/**/.pnpm-debug.log*
 webapp/**/.DS_Store

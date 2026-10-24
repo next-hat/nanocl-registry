@@ -1,0 +1,23 @@
+# UI source is imported directly from the Git submodule via TypeScript aliases.
+# Keep its dependencies available to those source files, as with npm's layout.
+nodeLinker: hoisted
+
+allowBuilds:
+  sharp: true
+  unrs-resolver: true
+
+# Monaco pins an older patch with known DOMPurify vulnerabilities.
+overrides:
+  monaco-editor>dompurify: 3.4.17
+
+minimumReleaseAgeExclude:
+  - '@next/env@16.4.3'
+  - '@next/swc-darwin-arm64@16.4.3'
+  - '@next/swc-darwin-x64@16.4.3'
+  - '@next/swc-linux-arm64-gnu@16.4.3'
+  - '@next/swc-linux-arm64-musl@16.4.3'
+  - '@next/swc-linux-x64-gnu@16.4.3'
+  - '@next/swc-linux-x64-musl@16.4.3'
+  - '@next/swc-win32-arm64-msvc@16.4.3'
+  - '@next/swc-win32-x64-msvc@16.4.3'
+  - next@16.4.3

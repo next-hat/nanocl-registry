@@ -4,8 +4,14 @@ A simple registry browser for Nanocl statefiles. Serves HTML for browsers and ra
 
 ### Run locally
 
-1. Install dependencies
-2. Start the custom Express server
+Use Node.js 26.12.1 and pnpm 12.15.0. From this directory:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+Run `pnpm typecheck` to check TypeScript and `pnpm build` for a production build.
 
 Args or environment variables:
 - argv[2] or NANOCL_REGISTRY_PATH: path to base folder (default: /folder)
@@ -67,9 +73,14 @@ docker build -t nanocl-registry .
 docker run --rm -p 3000:3000 nanocl-registry
 ```
 
-The build uses the committed npm lockfile. `scripts/prepare-runtime.mjs` combines
+The builder pins Node.js 26.12.1 and pnpm 12.15.0 and installs from the committed
+pnpm lockfile with `--frozen-lockfile`, caching the pnpm store between builds.
+`scripts/prepare-runtime.mjs` combines
 Next.js output traces with the custom Express server's dependencies, keeping
 development tooling, source maps, and build caches out of the runtime image.
+The shell-free runtime contains only Node with debug symbols removed, its Alpine
+shared libraries, CA certificates, and the traced application. Package managers
+and stripping tools stay in build stages.
 The container runs directly with Node as an unprivileged user and includes the
 registry's Statefiles. Its defaults can be overridden with `PORT`,
 `NANOCL_REGISTRY_PATH`, and `NANOCL_LATEST_VERSION`.

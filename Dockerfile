@@ -1,26 +1,42 @@
-FROM node:24-alpine3.22 AS build
+FROM node:26.12.1-alpine3.24 AS build
 
 WORKDIR /webapp
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY ./webapp/package*.json ./
-COPY ./webapp/packages/ui/package.json ./packages/ui/package.json
+RUN npm install --global pnpm@12.15.0
 
-RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
+COPY ./webapp/package.json ./webapp/pnpm-lock.yaml ./webapp/pnpm-workspace.yaml ./
+# pnpm snapshots file: dependencies, so include the UI source and PostCSS config.
+COPY ./webapp/packages/ui ./packages/ui
+
+RUN --mount=type=cache,target=/pnpm/store \
+    pnpm install --frozen-lockfile --store-dir=/pnpm/store
 
 COPY ./webapp ./
 
-RUN npm run build && node scripts/prepare-runtime.mjs
+RUN pnpm build && node scripts/prepare-runtime.mjs
 
-FROM alpine:3.22 AS runtime
+FROM alpine:3.24.3 AS runtime-files
 
-# Keep Node and its runtime libraries; npm, Yarn, and build tooling stay behind.
-RUN apk add --no-cache libstdc++ ca-certificates \
+COPY --from=build /usr/local/bin/node /runtime/usr/local/bin/node
+
+# Strip Node's debug symbols and assemble only its required runtime files.
+RUN apk add --no-cache binutils libstdc++ libatomic ca-certificates \
+    && strip --strip-all /runtime/usr/local/bin/node \
     && addgroup -S -g 1000 node \
-    && adduser -S -u 1000 -G node node
+    && adduser -S -u 1000 -G node node \
+    && mkdir -p /runtime/lib /runtime/usr/lib /runtime/etc/ssl/certs /runtime/tmp \
+    && cp -a /lib/ld-musl-*.so.1 /lib/libc.musl-*.so.1 /runtime/lib/ \
+    && cp -a /usr/lib/libstdc++.so.* /usr/lib/libgcc_s.so.* /usr/lib/libatomic.so.* /runtime/usr/lib/ \
+    && cp /etc/passwd /etc/group /runtime/etc/ \
+    && cp /etc/ssl/certs/ca-certificates.crt /runtime/etc/ssl/certs/ \
+    && cp -a /etc/ssl/cert.pem /runtime/etc/ssl/ \
+    && chmod 1777 /runtime/tmp
 
-COPY --from=build /usr/local/bin/node /usr/local/bin/node
+FROM scratch AS runtime
+
+COPY --from=runtime-files /runtime/ /
 
 WORKDIR /webapp
 
